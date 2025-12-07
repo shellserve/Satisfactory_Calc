@@ -1,6 +1,6 @@
-// Package io handles any and all file operations
+// Package file handles any and all file operations
 // This package will likely also handle logging mechnaisms and user input later on
-package io
+package file
 
 import (
 	"errors"

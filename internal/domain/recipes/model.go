@@ -1,8 +1,12 @@
 // Package recipes holds loader logic and models used in collecting recipe information from the satisfactory master schema
-// - model.go: model structs
-// - loader.go: loader logic
+// model.go: model structs
+// loader.go: loader logic
+//
 // TODO
-//   - UnlockedBy is currently not used. This can either be a string or array of strings so we need a normalization function to handle this.
+// UnlockedBy is currently not used.
+//
+//	This can either be a string or array of strings
+//	we need a normalization function to handle this.
 package recipes
 
 type ItemAmount struct {

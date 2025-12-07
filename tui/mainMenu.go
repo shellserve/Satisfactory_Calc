@@ -5,6 +5,9 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/log"
+
+	"github.com/shellserve/Satisfactory_Calc/internal/domain/file"
+	"github.com/shellserve/Satisfactory_Calc/internal/domain/scraper"
 )
 
 type mainMenuModel struct {
@@ -21,6 +24,23 @@ func mainMenu() mainMenuModel {
 
 // Init functiom
 func (m mainMenuModel) Init() tea.Cmd {
+	if !file.FileExists("satisfactory_recipies.json") {
+		m.logger.Info("Fetching recipe JSON")
+		data, err := scraper.FetchRecipes()
+		if err != nil {
+			m.logger.Error("Error fetching recipe JSON", "error", err)
+			panic(
+				fmt.Sprintf("Failed to FetchRecipes: %s", err))
+		}
+		m.logger.Info("Fetching completed - writting to file")
+		_, err = file.WriteStringToFile("satisfactory_recipies.json", data)
+		if err != nil {
+			m.logger.Error("Error writing to file", "error", err)
+			panic(
+				fmt.Sprintf("Failed to WriteStringToFile: %s", err))
+		}
+		m.logger.Info("Recipe succesfully fetched and written to file!")
+	}
 	return nil
 }
 

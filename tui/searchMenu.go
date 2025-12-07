@@ -114,10 +114,15 @@ func (m searchMenuModel) View() string {
 
 	start, end := m.paginator.GetSliceBounds(len(m.queryResults))
 	pageResults := m.queryResults[start:end]
+	m.logger.Info(
+		fmt.Sprintf("Page Results: %s", pageResults),
+	)
 
 	s += "Results:\n"
 	for _, r := range pageResults {
-		s += fmt.Sprintf("• %s\n", r)
+		if r != "" {
+			s += fmt.Sprintf(":: %s\n", r)
+		}
 	}
 
 	s += "\n" + m.paginator.View() + "\n"
@@ -129,6 +134,10 @@ func (m searchMenuModel) View() string {
 
 // Commands
 func searchRecipesCmd(query string) tea.Cmd {
+	// return MSG
+	// performs fuzz match
+	// returns;[]Recipe Name, RecipeComponents{componentName: component Cost}, Building
+
 	return func() tea.Msg {
 		results := []string{
 			"Pasta Carbonara",
