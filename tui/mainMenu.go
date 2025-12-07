@@ -25,21 +25,19 @@ func mainMenu() mainMenuModel {
 // Init functiom
 func (m mainMenuModel) Init() tea.Cmd {
 	if !file.FileExists("satisfactory_recipies.json") {
-		m.logger.Info("Fetching recipe JSON")
+		// Scrape recipes from remote resource
 		data, err := scraper.FetchRecipes()
 		if err != nil {
-			m.logger.Error("Error fetching recipe JSON", "error", err)
 			panic(
-				fmt.Sprintf("Failed to FetchRecipes: %s", err))
+				fmt.Sprintf("Failed to FetchRecipes: %v", err))
 		}
-		m.logger.Info("Fetching completed - writting to file")
+
+		// Write json data to file
 		_, err = file.WriteStringToFile("satisfactory_recipies.json", data)
 		if err != nil {
-			m.logger.Error("Error writing to file", "error", err)
 			panic(
-				fmt.Sprintf("Failed to WriteStringToFile: %s", err))
+				fmt.Sprintf("Failed to write to file: %v", err))
 		}
-		m.logger.Info("Recipe succesfully fetched and written to file!")
 	}
 	return nil
 }

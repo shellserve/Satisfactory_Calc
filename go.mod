@@ -7,8 +7,8 @@ require (
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/charmbracelet/log v0.4.2
-	github.com/fogleman/ease v0.0.0-20170301025033-8da417bf1776
 	github.com/gocolly/colly v1.2.0
+	github.com/sahilm/fuzzy v0.1.1
 )
 
 require (

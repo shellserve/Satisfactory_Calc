@@ -3,12 +3,14 @@ package tui
 import (
 	"fmt"
 	"math"
-	"strings"
 
 	"github.com/charmbracelet/bubbles/paginator"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/log"
+	"github.com/sahilm/fuzzy"
+	"github.com/shellserve/Satisfactory_Calc/internal/domain/file"
+	"github.com/shellserve/Satisfactory_Calc/internal/domain/recipes"
 )
 
 type (
@@ -21,11 +23,11 @@ type searchMenuModel struct {
 	querySelected bool
 	queryRunning  bool
 	queryResults  []string
-
-	paginator   paginator.Model
-	showResults bool
-	logger      *log.Logger
-	err         error
+	rec           recipes.Recipes
+	paginator     paginator.Model
+	showResults   bool
+	logger        *log.Logger
+	err           error
 }
 
 func searchMenu() searchMenuModel {
@@ -38,15 +40,26 @@ func searchMenu() searchMenuModel {
 	p := paginator.New()
 	p.PerPage = 5
 	p.Type = paginator.Dots
+	contentByes, err := file.ReadFromFile("satisfactory_recipies.json")
+	if err != nil {
+		panic(err)
+	}
+
+	rec, err := recipes.LoadRecipeFromJSON(contentByes)
+	if err != nil {
+		panic(err)
+	}
 
 	return searchMenuModel{
 		queryInput: ti,
 		paginator:  p,
 		logger:     LoggerFor("searchmenu"),
+		rec:        rec,
 	}
 }
 
 func (m searchMenuModel) Init() tea.Cmd {
+	// Load recipe map here to reduce overhead during start of program
 	return textinput.Blink
 }
 
@@ -67,7 +80,7 @@ func (m searchMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.queryRunning = true
 
 			m.logger.Info("Running search", "query", m.queryString)
-			return m, searchRecipesCmd(m.queryString)
+			return m, searchRecipesCmd(m.rec, m.queryString)
 
 		case "left":
 			if m.showResults {
@@ -79,11 +92,11 @@ func (m searchMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
-	case []string:
-		m.queryResults = msg
+	case []recipes.RecipeEntry:
+		// m.queryResults = msg
 		m.queryRunning = false
 		m.showResults = true
-
+		m.logger.Info("Results", msg)
 		m.paginator.SetTotalPages(
 			int(math.Ceil(float64(len(m.queryResults)) / float64(m.paginator.PerPage))),
 		)
@@ -133,27 +146,28 @@ func (m searchMenuModel) View() string {
 }
 
 // Commands
-func searchRecipesCmd(query string) tea.Cmd {
+func searchRecipesCmd(rec recipes.Recipes, query string) tea.Cmd {
 	// return MSG
 	// performs fuzz match
 	// returns;[]Recipe Name, RecipeComponents{componentName: component Cost}, Building
 
 	return func() tea.Msg {
-		results := []string{
-			"Pasta Carbonara",
-			"Nuclear Spaghetti",
-			"Atomic Alfredo",
-			"Radioactive Ragu",
-			"Quantum Lasagna",
-			"Particle Penne",
-		}
+		var allNames []string
+		var allEntries []recipes.RecipeEntry
 
-		filtered := []string{}
-		for _, r := range results {
-			if strings.Contains(strings.ToLower(r), strings.ToLower(query)) {
-				filtered = append(filtered, r)
+		for _, entries := range rec {
+			for _, entry := range entries {
+				allNames = append(allNames, entry.Name)
+				allEntries = append(allEntries, entry)
 			}
 		}
-		return filtered
+
+		matches := fuzzy.Find(query, allNames)
+		var results []recipes.RecipeEntry
+		for _, match := range matches {
+			results = append(results, allEntries[match.Index])
+		}
+
+		return results
 	}
 }
