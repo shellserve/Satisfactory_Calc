@@ -15,7 +15,7 @@ func RootScreen() rootScreenModel {
 	var rootModel tea.Model
 
 	mainMenuScreen := mainMenu()
-	rootModel = &mainMenuScreen
+	rootModel = mainMenuScreen
 
 	return rootScreenModel{
 		logger: LoggerFor("root"),
